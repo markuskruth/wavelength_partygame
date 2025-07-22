@@ -1,4 +1,4 @@
-import pygame, math, time
+import pygame, math, time, random
 
 class GUI:
     def __init__(self, win_size):
@@ -6,9 +6,10 @@ class GUI:
         self.win_size = win_size
         self.win = pygame.display.set_mode(win_size)
 
-        self.arrow_x = win_size[0] // 2
+        self.arrow_x = 90  # Initial angle for the arrow in degrees
         self.curved_arrow_size = 50
         self.curved_arrow = pygame.transform.scale(pygame.image.load("./images/curved_arrow.png").convert_alpha(), (self.curved_arrow_size, self.curved_arrow_size))
+
     
     def draw_game_wheel(self):
         center_x = self.win_size[0] // 2
@@ -22,34 +23,88 @@ class GUI:
     def draw_arrow(self):
         big_circle_radius = self.win_size[0] // 1.9
         center_x = self.win_size[0] // 2
+        center_y = self.win_size[1]
         small_circle_radius = self.win_size[0] // 12
 
         # Small circle for the arrow
         pygame.draw.circle(self.win, (255, 0, 0), (center_x, self.win_size[1] - small_circle_radius // 2), small_circle_radius)
 
         # Arrow line
-        funcion_y = self.win_size[1] - math.sqrt(
-                                        (max( 
-                                            (big_circle_radius-small_circle_radius)**2 - (self.arrow_x - center_x)**2,
-                                            0)
-                                        ))
         pygame.draw.line(self.win, (255, 0, 0), 
                          (center_x, self.win_size[1] - small_circle_radius // 2), 
-                         (self.arrow_x, funcion_y), 
+                         (center_x + math.cos(math.radians(self.arrow_x)) * big_circle_radius, center_y - math.sin(math.radians(self.arrow_x)) * big_circle_radius),
                          width=10)
 
 
     def rotate_arrow(self, direction):
-        arrow_x_bound = 60
-        if direction == "left":
-            self.arrow_x = max(self.arrow_x - 1, arrow_x_bound)
-        elif direction == "right":
-            self.arrow_x = min(self.arrow_x + 1, self.win_size[0]-arrow_x_bound)
+        if direction == "right":
+            self.arrow_x = max(self.arrow_x - 0.5, 0)  # Limit to 0 degrees
+        elif direction == "left":
+            self.arrow_x = min(self.arrow_x + 0.5, 180)  # Limit to 180 degrees
         else:
              print("Direction must be either 'left' or 'right'")
              
 
-    def render(self):
+    # Draw the scoring range areas using polar coordinates
+    def draw_scoring_range(self, target_angle):
+        big_circle_radius = self.win_size[0] // 1.9
+        center_x = self.win_size[0] // 2
+        center_y = self.win_size[1]
+        small_circle_radius = self.win_size[0] // 12
+
+        angle = math.radians(10)
+
+        # Middle section
+        theta1 = target_angle
+        theta2 = target_angle + angle
+
+        x1 = center_x + math.cos(theta1) * big_circle_radius
+        y1 = center_y - math.sin(theta1) * big_circle_radius
+
+        x2 = center_x + math.cos(theta2) * big_circle_radius
+        y2 = center_y - math.sin(theta2) * big_circle_radius
+
+        pygame.draw.polygon(self.win, (0, 255, 0), [
+            (x1, y1), 
+            (x2, y2),
+            (center_x, self.win_size[1] - small_circle_radius // 2)
+        ])
+
+        for i in range(1,3):
+            # Left side
+            theta1 = target_angle + angle * i
+            theta2 = target_angle + angle * (i + 1)
+
+            x1 = center_x + math.cos(theta1) * big_circle_radius
+            y1 = center_y - math.sin(theta1) * big_circle_radius
+
+            x2 = center_x + math.cos(theta2) * big_circle_radius
+            y2 = center_y - math.sin(theta2) * big_circle_radius
+
+            pygame.draw.polygon(self.win, (0, 255-i*50, 0), [
+                (x1, y1), 
+                (x2, y2),
+                (center_x, self.win_size[1] - small_circle_radius // 2)
+            ])
+
+            # Right side
+            theta1 = target_angle - angle * (i-1)
+            theta2 = target_angle - angle * i
+
+            x1 = center_x + math.cos(theta1) * big_circle_radius
+            y1 = center_y - math.sin(theta1) * big_circle_radius
+
+            x2 = center_x + math.cos(theta2) * big_circle_radius
+            y2 = center_y - math.sin(theta2) * big_circle_radius
+            pygame.draw.polygon(self.win, (0, 255-i*50, 0), [
+                (x1, y1), 
+                (x2, y2),
+                (center_x, self.win_size[1] - small_circle_radius // 2)
+            ])
+
+        
+
+    def render(self, target_angle):
         self.win.fill((200, 200, 200))
 
         center_x = self.win_size[0] // 2
@@ -57,6 +112,9 @@ class GUI:
 
         # Draw the game wheel
         self.draw_game_wheel()
+
+        # Draw scoring range
+        self.draw_scoring_range(target_angle)
 
         # Draw the arrow
         self.draw_arrow()
@@ -77,12 +135,12 @@ class GUI:
             if ((mouse_x > right_arrow_topleft_coords[0] and mouse_x < right_arrow_topleft_coords[0] + self.curved_arrow_size) and
                 (mouse_y > right_arrow_topleft_coords[1] and mouse_y < right_arrow_topleft_coords[1] + self.curved_arrow_size)):
                     self.rotate_arrow("left")
-                    time.sleep(0.005)
+                    time.sleep(0.01)
 
             elif ((mouse_x > left_arrow_topleft_coords[0] and mouse_x < left_arrow_topleft_coords[0] + self.curved_arrow_size) and
                 (mouse_y > left_arrow_topleft_coords[1] and mouse_y < left_arrow_topleft_coords[1] + self.curved_arrow_size)):
                     self.rotate_arrow("right")                
-                    time.sleep(0.005)
+                    time.sleep(0.01)
 
         
         pygame.event.get() 

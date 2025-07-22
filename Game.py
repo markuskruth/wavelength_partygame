@@ -1,8 +1,12 @@
 import GUI
-import pygame, keyboard
+import pygame, keyboard, random, math
 
+
+win_size = (800, 600)
 if __name__ == "__main__":
-    gui = GUI.GUI((800, 600))
+    gui = GUI.GUI(win_size)
+    target_angle = random.randint(20, 160) * math.pi / 180  # Random target angle in radians
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -12,6 +16,6 @@ if __name__ == "__main__":
         if keyboard.is_pressed("q"):
             running = False
         
-        gui.render()
+        gui.render(target_angle)
     
     pygame.quit()
