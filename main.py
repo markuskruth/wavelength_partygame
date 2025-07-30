@@ -1,15 +1,17 @@
 import GUI, Game
-import pygame, keyboard, random, math
+import pygame, keyboard
 
 
 win_size = (800, 600)
+player_names = ["Markus", "Tyko", "Otso"]
+colors = [(255, 0, 255), (0, 255, 255), (0, 0, 255)]
+player_colors = {name: color for name, color in zip(player_names, colors)}
+
 if __name__ == "__main__":
     gui = GUI.GUI(win_size)
-    target_angle = random.randint(20, 160) * math.pi / 180  # Random target angle in radians
-
-    player_names = ["Markus", "Tyko", "Otso"]
     game = Game.Game(len(player_names), player_names)
     question = game.next_question()
+    target_angle = game.next_target_angle()
 
     running = True
     while running:
@@ -20,11 +22,11 @@ if __name__ == "__main__":
         if keyboard.is_pressed("q"):
             running = False
         
-        gui.render(target_angle, question, game)
+        gui.render(target_angle, question, game, player_colors)
 
         if game.new_round:
             question = game.next_question()
-            target_angle = random.randint(20, 160) * math.pi / 180
+            target_angle = game.next_target_angle()
             game.new_round = False
         
     

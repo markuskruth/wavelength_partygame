@@ -9,53 +9,49 @@ class GUI:
 
         self.big_circle_radius = win_size[0] // 1.9
         self.arrow_circle_radius = win_size[0] // 12
-
         self.arrow_angle = 90  # Initial angle for the arrow in degrees
         self.curved_arrow_size = 50
-        self.curved_arrow = pygame.transform.scale(pygame.image.load("./images/curved_arrow.png").convert_alpha(), (self.curved_arrow_size, self.curved_arrow_size))
+        self.curved_arrow = pygame.transform.scale(pygame.image.load("./images/curved_arrow_button.png").convert_alpha(), (self.curved_arrow_size, self.curved_arrow_size))
+        
+        self.button_size = (150, 40)
+        self.button_text_padding = (5, 10)
+        self.center_x = self.win_size[0] // 2
+        self.bottom_y = self.win_size[1]
 
         self.hide_state = False
         self.round_ended = False
-        self.button_size = (150, 40)
-        self.button_text_padding = (5, 10)
+        self.disable_submit = False
 
     
     def draw_game_wheel(self):
-        center_x = self.win_size[0] // 2
-
+        outline_circle_radius = self.big_circle_radius + 10
         # Outline for the half-circle
-        pygame.draw.circle(self.win, (0, 0, 0), (center_x, self.win_size[1]), self.win_size[0] // 1.85)
+        pygame.draw.circle(self.win, (0, 0, 0), (self.center_x, self.bottom_y), outline_circle_radius)
         # The half-circle
-        pygame.draw.circle(self.win, (255, 255, 255), (center_x, self.win_size[1]), self.big_circle_radius)
+        pygame.draw.circle(self.win, (255, 255, 255), (self.center_x, self.bottom_y), self.big_circle_radius)
 
     def draw_arrow(self, rotate_right_button_coords, rotate_left_button_coords):
-        center_x = self.win_size[0] // 2
-        center_y = self.win_size[1]
-
         # Small circle for the arrow
-        pygame.draw.circle(self.win, (255, 0, 0), (center_x, self.win_size[1] - self.arrow_circle_radius // 2), self.arrow_circle_radius)
+        pygame.draw.circle(self.win, (255, 0, 0), (self.center_x, self.bottom_y - self.arrow_circle_radius // 2), self.arrow_circle_radius)
 
         # Arrow line
         pygame.draw.line(self.win, (255, 0, 0), 
-                         (center_x, self.win_size[1] - self.arrow_circle_radius // 2), 
-                         (center_x + math.cos(math.radians(self.arrow_angle)) * self.big_circle_radius, center_y - math.sin(math.radians(self.arrow_angle)) * self.big_circle_radius),
+                         (self.center_x, self.bottom_y - self.arrow_circle_radius // 2), 
+                         (self.center_x + math.cos(math.radians(self.arrow_angle)) * self.big_circle_radius, self.bottom_y - math.sin(math.radians(self.arrow_angle)) * self.big_circle_radius),
                          width=10)
 
-        right_arrow = self.curved_arrow
-        left_arrow = pygame.transform.flip(pygame.transform.rotate(self.curved_arrow, 180), flip_x=False, flip_y=True)
+        left_arrow = pygame.transform.rotate(pygame.transform.flip(self.curved_arrow, flip_x=False, flip_y=True), 90)
+        right_arrow = pygame.transform.rotate(self.curved_arrow, 90)
         self.win.blit(right_arrow, rotate_right_button_coords)
         self.win.blit(left_arrow, rotate_left_button_coords)
 
-    def draw_guess_arrows(self, guesses):
-        center_x = self.win_size[0] // 2
-        center_y = self.win_size[1]
-
+    def draw_guess_arrows(self, guesses, player_colors):
         names = guesses.keys()
         for name in names:
             guess_angle = guesses[name]
-            pygame.draw.line(self.win, (0, 255, 255), 
-                         (center_x, self.win_size[1] - self.arrow_circle_radius // 2), 
-                         (center_x + math.cos(math.radians(guess_angle)) * self.big_circle_radius, center_y - math.sin(math.radians(guess_angle)) * self.big_circle_radius),
+            pygame.draw.line(self.win, player_colors[name], 
+                         (self.center_x, self.bottom_y - self.arrow_circle_radius // 2), 
+                         (self.center_x + math.cos(math.radians(guess_angle)) * self.big_circle_radius, self.bottom_y - math.sin(math.radians(guess_angle)) * self.big_circle_radius),
                          width=10)
 
     def rotate_arrow(self, direction):
@@ -69,25 +65,22 @@ class GUI:
 
     # Draw the scoring range areas using polar coordinates
     def draw_scoring_range(self, target_angle):
-        center_x = self.win_size[0] // 2
-        center_y = self.win_size[1]
-
         angle = math.radians(10)
 
         # Middle section
         theta1 = target_angle
         theta2 = target_angle + angle
 
-        x1 = center_x + math.cos(theta1) * self.big_circle_radius
-        y1 = center_y - math.sin(theta1) * self.big_circle_radius
+        x1 = self.center_x + math.cos(theta1) * self.big_circle_radius
+        y1 = self.bottom_y - math.sin(theta1) * self.big_circle_radius
 
-        x2 = center_x + math.cos(theta2) * self.big_circle_radius
-        y2 = center_y - math.sin(theta2) * self.big_circle_radius
+        x2 = self.center_x + math.cos(theta2) * self.big_circle_radius
+        y2 = self.bottom_y - math.sin(theta2) * self.big_circle_radius
 
         pygame.draw.polygon(self.win, (0, 255, 0), [
             (x1, y1), 
             (x2, y2),
-            (center_x, self.win_size[1] - self.arrow_circle_radius // 2)
+            (self.center_x, self.bottom_y - self.arrow_circle_radius // 2)
         ])
 
         for i in range(1,3):
@@ -95,40 +88,40 @@ class GUI:
             theta1 = target_angle + angle * i
             theta2 = target_angle + angle * (i + 1)
 
-            x1 = center_x + math.cos(theta1) * self.big_circle_radius
-            y1 = center_y - math.sin(theta1) * self.big_circle_radius
+            x1 = self.center_x + math.cos(theta1) * self.big_circle_radius
+            y1 = self.bottom_y - math.sin(theta1) * self.big_circle_radius
 
-            x2 = center_x + math.cos(theta2) * self.big_circle_radius
-            y2 = center_y - math.sin(theta2) * self.big_circle_radius
+            x2 = self.center_x + math.cos(theta2) * self.big_circle_radius
+            y2 = self.bottom_y - math.sin(theta2) * self.big_circle_radius
 
             pygame.draw.polygon(self.win, (0, 255-i*50, 0), [
                 (x1, y1), 
                 (x2, y2),
-                (center_x, self.win_size[1] - self.arrow_circle_radius // 2)
+                (self.center_x, self.bottom_y - self.arrow_circle_radius // 2)
             ])
 
             # Right side
             theta1 = target_angle - angle * (i-1)
             theta2 = target_angle - angle * i
 
-            x1 = center_x + math.cos(theta1) * self.big_circle_radius
-            y1 = center_y - math.sin(theta1) * self.big_circle_radius
+            x1 = self.center_x + math.cos(theta1) * self.big_circle_radius
+            y1 = self.bottom_y - math.sin(theta1) * self.big_circle_radius
 
-            x2 = center_x + math.cos(theta2) * self.big_circle_radius
-            y2 = center_y - math.sin(theta2) * self.big_circle_radius
+            x2 = self.center_x + math.cos(theta2) * self.big_circle_radius
+            y2 = self.bottom_y - math.sin(theta2) * self.big_circle_radius
             pygame.draw.polygon(self.win, (0, 255-i*50, 0), [
                 (x1, y1), 
                 (x2, y2),
-                (center_x, self.win_size[1] - self.arrow_circle_radius // 2)
+                (self.center_x, self.bottom_y - self.arrow_circle_radius // 2)
             ])
 
 
-    def draw_players(self, game):
+    def draw_players(self, game, player_colors):
         font = pygame.font.Font(None, 36)
         text_y = 10
         text_width = 130
         for name in (game.player_names):
-            name_surface = font.render(f"{name}: {game.player_scores[name]}", True, (0, 0, 0))
+            name_surface = font.render(f"{name}: {game.player_scores[name]}", True, player_colors[name])
             pygame.draw.rect(self.win, (255, 255, 255), (10, text_y, text_width, 30))
             self.win.blit(name_surface, (10, text_y))
             if name == game.hint_giver:
@@ -140,9 +133,8 @@ class GUI:
             text_y += 40
 
     def hide_wheel(self):
-        center_x = self.win_size[0] // 2
         # Draw a white circle to cover the game wheel
-        pygame.draw.circle(self.win, (255, 255, 255), (center_x, self.win_size[1]), self.big_circle_radius)
+        pygame.draw.circle(self.win, (255, 255, 255), (self.center_x, self.win_size[1]), self.big_circle_radius)
 
     def draw_question(self, question):
         font = pygame.font.Font(None, 36)
@@ -155,14 +147,11 @@ class GUI:
 
 
 
-    def render(self, target_angle, question, game):
+    def render(self, target_angle, question, game, player_colors):
         self.win.fill((200, 200, 200))
 
-        center_x = self.win_size[0] // 2
-        bottom_y = self.win_size[1]
-
         # Draw player names
-        self.draw_players(game)
+        self.draw_players(game, player_colors)
 
         # Draw the game wheel
         self.draw_game_wheel()
@@ -174,14 +163,14 @@ class GUI:
             self.draw_scoring_range(target_angle)
         
         if self.round_ended:
-            self.draw_guess_arrows(game.guesses)
+            self.draw_guess_arrows(game.guesses, player_colors)
         
         # Draw the question
         self.draw_question(question)
 
         # Draw the arrow
-        rotate_left_button_coords = (center_x-60, bottom_y-60)
-        rotate_right_button_coords = (center_x+10, bottom_y-60)
+        rotate_left_button_coords = (self.center_x-60, self.win_size[1]-60)
+        rotate_right_button_coords = (self.center_x+10, self.win_size[1]-60)
         self.draw_arrow(rotate_right_button_coords, rotate_left_button_coords)
 
 
@@ -193,7 +182,10 @@ class GUI:
 
         # Submit guess button
         submit_guess_button_coords = (hide_wheel_button_coords[0], hide_wheel_button_coords[1] + self.button_size[1]+10)
-        pygame.draw.rect(self.win, (255, 0, 0), (*submit_guess_button_coords, *self.button_size))
+        if self.disable_submit:
+            pygame.draw.rect(self.win, (150, 150, 150), (*submit_guess_button_coords, *self.button_size))
+        else:
+            pygame.draw.rect(self.win, (255, 0, 0), (*submit_guess_button_coords, *self.button_size))
         submit_guess_text = pygame.font.Font(None, 36).render("Submit", True, (255, 255, 255))
         self.win.blit(submit_guess_text, (submit_guess_button_coords[0] + self.button_text_padding[0], submit_guess_button_coords[1] + self.button_text_padding[1]))
 
@@ -209,6 +201,8 @@ class GUI:
         # Track mouse clicks
         mouse = pygame.mouse
         mouse_x,mouse_y = mouse.get_pos()
+
+        # Hide wheel button
         if mouse_x > hide_wheel_button_coords[0] and mouse_x < hide_wheel_button_coords[0] + self.button_size[0] and \
            mouse_y > hide_wheel_button_coords[1] and mouse_y < hide_wheel_button_coords[1] + self.button_size[1]:
             pygame.draw.rect(self.win, (255, 100, 0), (*hide_wheel_button_coords, *self.button_size))
@@ -217,15 +211,20 @@ class GUI:
                 self.hide_state = not self.hide_state
                 time.sleep(0.1)
         
+        # Submit guess button
         elif mouse_x > submit_guess_button_coords[0] and mouse_x < submit_guess_button_coords[0] + self.button_size[0] and \
            mouse_y > submit_guess_button_coords[1] and mouse_y < submit_guess_button_coords[1] + self.button_size[1]:
-            pygame.draw.rect(self.win, (255, 100, 0), (*submit_guess_button_coords, *self.button_size))
+            if self.disable_submit:
+                pygame.draw.rect(self.win, (150, 150, 150), (*submit_guess_button_coords, *self.button_size))
+            else:
+                pygame.draw.rect(self.win, (255, 100, 0), (*submit_guess_button_coords, *self.button_size))
             self.win.blit(submit_guess_text, (submit_guess_button_coords[0] + self.button_text_padding[0], submit_guess_button_coords[1] + self.button_text_padding[1]))
-            if mouse.get_pressed()[0]:
+            if mouse.get_pressed()[0] and not self.disable_submit:
                 game.guesses[game.turn] = self.arrow_angle
-                game.next_turn()
+                self.disable_submit = not game.next_turn()
                 time.sleep(0.5)
         
+        # End / Start round button
         elif mouse_x > end_round_button_coords[0] and mouse_x < end_round_button_coords[0] + self.button_size[0] and \
            mouse_y > end_round_button_coords[1] and mouse_y < end_round_button_coords[1] + self.button_size[1]:
             pygame.draw.rect(self.win, (255, 100, 0), (*end_round_button_coords, *self.button_size))
@@ -235,7 +234,9 @@ class GUI:
                 self.arrow_angle = 90
                 if self.round_ended:
                     game.end_round(target_angle, game.guesses)
+                    self.hide_state = False
                 else:
+                    self.disable_submit = False
                     game.start_round()
                 time.sleep(0.5)
 

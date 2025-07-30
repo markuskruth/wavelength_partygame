@@ -5,6 +5,7 @@ class Game:
         self.player_names = player_names
         self.hint_giver_index = 0
         self.rounds = rounds
+        self.target_angle = random.randint(0, 180) * math.pi / 180  # Random target angle in radians
         self.player_scores = {name: 0 for name in player_names}
         self.questions = [
                         ("Aliarvostettu elokuva", "Yliarvostettu elokuva"),
@@ -60,7 +61,7 @@ class Game:
         self.possible_turns.remove(self.hint_giver)
         random.shuffle(self.possible_turns)
         self.turn_index = 0
-        self.possible_turns[self.turn_index]
+        self.turn = self.possible_turns[self.turn_index]
         self.guesses = {name: 0 for name in self.possible_turns}
         self.new_round = True
     
@@ -68,3 +69,7 @@ class Game:
         question = self.questions[self.question_index]
         self.question_index += 1
         return question
+
+    def next_target_angle(self):
+        self.target_angle = random.randint(0, 180) * math.pi / 180
+        return self.target_angle
