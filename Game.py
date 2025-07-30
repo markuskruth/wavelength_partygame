@@ -10,7 +10,22 @@ class Game:
         self.questions = [
                         ("Aliarvostettu elokuva", "Yliarvostettu elokuva"),
                         ("Pahan makuinen ruoka", "Hyvän makuinen ruoka"),
-                        ("Testi vasen", "Testi oikea")
+                        ("Epähyödyllinen keksintö", "Hyödyllinen keksintö"),
+                        ("aliarvostettu artisti", "Yliarvostettu artisti"),
+                        ("Kukaan ei tee niin", "Kaikki tekevät niin"),
+                        ("En voittaisi tappelussa", "Voittaisin tappelussa"),
+                        ("En haluaisi olla", "Haluaisin olla"),
+                        ("En haluaisi tavata", "Haluaisin tavata"),
+                        ("En haluaisi kuulla", "Haluaisin kuulla"),
+                        ("En haluaisi nähdä", "Haluaisin nähdä"),
+                        ("En haluaisi koskea", "Haluaisin koskea"),
+                        ("En haluaisi kokea", "Haluaisin kokea"),
+                        ("Laiton", "Laillinen"),
+                        ("Epäilyttävä henkilö", "Luotettava henkilö"),
+                        ("Huono tapa", "Hyvä tapa"),
+                        ("Huonoin kokemukseni", "Paras kokemukseni"),
+                        ("Huono neuvo", "Hyvä neuvo"),
+                        ("Parempi kylmänä", "Parempi kuumana")
                         ]
         random.shuffle(self.questions)
         self.question_index = 0
@@ -43,15 +58,20 @@ class Game:
             if difference >= 0:
                 if difference <= 10:
                     self.player_scores[player] += 3
+                    self.player_scores[self.hint_giver] += 1
                 elif difference <= 20:
                     self.player_scores[player] += 2
+                    self.player_scores[self.hint_giver] += 1
                 elif difference <= 30:
                     self.player_scores[player] += 1
+                    self.player_scores[self.hint_giver] += 1
             else:
                 if abs(difference) <= 10:
                     self.player_scores[player] += 2
+                    self.player_scores[self.hint_giver] += 1
                 elif abs(difference) <= 20:
                     self.player_scores[player] += 1
+                    self.player_scores[self.hint_giver] += 1
 
     def start_round(self):
         self.hint_giver_index += 1

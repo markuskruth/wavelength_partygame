@@ -18,7 +18,7 @@ class GUI:
         self.center_x = self.win_size[0] // 2
         self.bottom_y = self.win_size[1]
 
-        self.hide_state = False
+        self.hide_state = True  # Initially hide the game wheel
         self.round_ended = False
         self.disable_submit = False
 
@@ -30,6 +30,7 @@ class GUI:
         # The half-circle
         pygame.draw.circle(self.win, (255, 255, 255), (self.center_x, self.bottom_y), self.big_circle_radius)
 
+   
     def draw_arrow(self, rotate_right_button_coords, rotate_left_button_coords):
         # Small circle for the arrow
         pygame.draw.circle(self.win, (255, 0, 0), (self.center_x, self.bottom_y - self.arrow_circle_radius // 2), self.arrow_circle_radius)
@@ -45,6 +46,7 @@ class GUI:
         self.win.blit(right_arrow, rotate_right_button_coords)
         self.win.blit(left_arrow, rotate_left_button_coords)
 
+
     def draw_guess_arrows(self, guesses, player_colors):
         names = guesses.keys()
         for name in names:
@@ -53,6 +55,7 @@ class GUI:
                          (self.center_x, self.bottom_y - self.arrow_circle_radius // 2), 
                          (self.center_x + math.cos(math.radians(guess_angle)) * self.big_circle_radius, self.bottom_y - math.sin(math.radians(guess_angle)) * self.big_circle_radius),
                          width=10)
+
 
     def rotate_arrow(self, direction):
         if direction == "right":
@@ -132,9 +135,11 @@ class GUI:
                 pygame.draw.circle(self.win, (255,0,0), (text_width + 30, text_y + 15), 10)
             text_y += 40
 
+
     def hide_wheel(self):
         # Draw a white circle to cover the game wheel
         pygame.draw.circle(self.win, (255, 255, 255), (self.center_x, self.win_size[1]), self.big_circle_radius)
+
 
     def draw_question(self, question):
         font = pygame.font.Font(None, 36)
@@ -144,7 +149,6 @@ class GUI:
         question_right_rect = question_right.get_rect(center=(5 * self.win_size[0] // 6 - len(question[1]), self.win_size[1] - 50))
         self.win.blit(question_left, question_left_rect)
         self.win.blit(question_right, question_right_rect)
-
 
 
     def render(self, target_angle, question, game, player_colors):
@@ -174,10 +178,13 @@ class GUI:
         self.draw_arrow(rotate_right_button_coords, rotate_left_button_coords)
 
 
-        # Hide wheel button
+        # Hide / Show wheel button
         hide_wheel_button_coords = (self.win_size[0] - (self.button_size[0] + 20), 20)
         pygame.draw.rect(self.win, (255, 0, 0), (*hide_wheel_button_coords, *self.button_size))
-        hide_wheel_text = pygame.font.Font(None, 36).render("Hide", True, (255, 255, 255))
+        if self.hide_state:
+            hide_wheel_text = pygame.font.Font(None, 36).render("Show", True, (255, 255, 255))
+        else:
+            hide_wheel_text = pygame.font.Font(None, 36).render("Hide", True, (255, 255, 255))
         self.win.blit(hide_wheel_text, (hide_wheel_button_coords[0] + self.button_text_padding[0], hide_wheel_button_coords[1] + self.button_text_padding[1]))
 
         # Submit guess button
@@ -189,7 +196,7 @@ class GUI:
         submit_guess_text = pygame.font.Font(None, 36).render("Submit", True, (255, 255, 255))
         self.win.blit(submit_guess_text, (submit_guess_button_coords[0] + self.button_text_padding[0], submit_guess_button_coords[1] + self.button_text_padding[1]))
 
-        # End round button
+        # End / Start round button
         end_round_button_coords = (submit_guess_button_coords[0], submit_guess_button_coords[1] + self.button_size[1] + 10)
         pygame.draw.rect(self.win, (255, 0 ,0), (*end_round_button_coords, *self.button_size))
         if self.round_ended:
@@ -202,7 +209,7 @@ class GUI:
         mouse = pygame.mouse
         mouse_x,mouse_y = mouse.get_pos()
 
-        # Hide wheel button
+        # Hide / Show wheel button pressed
         if mouse_x > hide_wheel_button_coords[0] and mouse_x < hide_wheel_button_coords[0] + self.button_size[0] and \
            mouse_y > hide_wheel_button_coords[1] and mouse_y < hide_wheel_button_coords[1] + self.button_size[1]:
             pygame.draw.rect(self.win, (255, 100, 0), (*hide_wheel_button_coords, *self.button_size))
@@ -211,7 +218,7 @@ class GUI:
                 self.hide_state = not self.hide_state
                 time.sleep(0.1)
         
-        # Submit guess button
+        # Submit guess button pressed
         elif mouse_x > submit_guess_button_coords[0] and mouse_x < submit_guess_button_coords[0] + self.button_size[0] and \
            mouse_y > submit_guess_button_coords[1] and mouse_y < submit_guess_button_coords[1] + self.button_size[1]:
             if self.disable_submit:
@@ -221,10 +228,11 @@ class GUI:
             self.win.blit(submit_guess_text, (submit_guess_button_coords[0] + self.button_text_padding[0], submit_guess_button_coords[1] + self.button_text_padding[1]))
             if mouse.get_pressed()[0] and not self.disable_submit:
                 game.guesses[game.turn] = self.arrow_angle
+                self.arrow_angle = 90  # Reset arrow angle
                 self.disable_submit = not game.next_turn()
                 time.sleep(0.5)
         
-        # End / Start round button
+        # End / Start round button pressed
         elif mouse_x > end_round_button_coords[0] and mouse_x < end_round_button_coords[0] + self.button_size[0] and \
            mouse_y > end_round_button_coords[1] and mouse_y < end_round_button_coords[1] + self.button_size[1]:
             pygame.draw.rect(self.win, (255, 100, 0), (*end_round_button_coords, *self.button_size))
@@ -237,6 +245,7 @@ class GUI:
                     self.hide_state = False
                 else:
                     self.disable_submit = False
+                    self.hide_state = True
                     game.start_round()
                 time.sleep(0.5)
 
